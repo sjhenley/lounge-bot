@@ -1,8 +1,8 @@
 import { Client, ClientOptions, Collection } from 'discord.js';
-import { CommandModel } from './command.model';
+import { Command } from './command.model';
 
 class BotClient extends Client {
-  public commands: Collection<string, CommandModel>;
+  public commands: Collection<string, Command>;
 
   constructor(options: ClientOptions) {
     super(options);
