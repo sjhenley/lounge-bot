@@ -2,10 +2,10 @@
   "name": "lounge-bot",
   "version": "2.0.0",
   "description": "A Discord bot for the lounge",
-  "main": "src/index.ts",
+  "main": "src/bot-server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/bot-server.ts --resolveJsonModule"
   },
   "author": "Sam Henley",
   "license": "ISC",
