@@ -1,0 +1,14 @@
+{
+  "name": "lounge-bot",
+  "version": "2.0.0",
+  "description": "A Discord bot for the lounge",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sam Henley",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.9.3"
+  }
+}
