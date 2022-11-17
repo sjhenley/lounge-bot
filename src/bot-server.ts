@@ -4,6 +4,7 @@ import BotClient from './models/bot-client.model';
 import botCommands from './commands';
 import botEvents from './events';
 import { BaseEvent } from './models/base-event.model';
+import logger from './logger/logger-init';
 
 dotenv.config();
 
