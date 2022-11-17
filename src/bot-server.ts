@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import { Collection, Events, GatewayIntentBits } from 'discord.js';
+import { Events, GatewayIntentBits } from 'discord.js';
 import BotClient from './models/bot-client.model';
 import botCommands from './commands';
 
@@ -9,7 +9,6 @@ dotenv.config();
 const client = new BotClient({ intents: [GatewayIntentBits.Guilds] });
 
 // Register commands to the client
-client.commands = new Collection();
 console.log('Registering commands...');
 botCommands.forEach((cmd) => {
   console.log(`Registering command: ${cmd.data.name}`);
@@ -43,5 +42,5 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 // Log in to Discord with the client token
-const token = process.env.DISCORD_TOKEN;
+const token = process.env.DISCORD_BOT_TOKEN;
 client.login(token);
