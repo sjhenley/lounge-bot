@@ -5,7 +5,8 @@
   "main": "src/bot-server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node src/bot-server.ts --resolveJsonModule"
+    "start": "ts-node src/bot-server.ts",
+    "deploy-commands": "ts-node deploy-commands.ts"
   },
   "author": "Sam Henley",
   "license": "ISC",
