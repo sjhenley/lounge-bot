@@ -1,7 +1,9 @@
 import * as dotenv from 'dotenv';
-import { Events, GatewayIntentBits } from 'discord.js';
+import { GatewayIntentBits } from 'discord.js';
 import BotClient from './models/bot-client.model';
 import botCommands from './commands';
+import botEvents from './events';
+import { BaseEvent } from './models/base-event.model';
 
 dotenv.config();
 
@@ -16,28 +18,11 @@ botCommands.forEach((cmd) => {
 });
 console.log('All commands registered');
 
-// When the client is ready, run this code (only once)
-// We use 'c' for the event parameter to keep it separate from the already defined 'client'
-client.once(Events.ClientReady, (c) => {
-  console.log(`Ready! Logged in as ${c.user.tag}`);
-});
-
-// Handle interactions
-client.on(Events.InteractionCreate, async (interaction) => {
-  console.log(interaction);
-  if (interaction.isChatInputCommand()) {
-    // handle slash commands
-    const command = client.commands.get(interaction.commandName);
-    if (!command) {
-      console.error(`Command not found matching name ${interaction.commandName}`);
-    } else {
-      try {
-        await command.execute(interaction);
-      } catch {
-        console.error(`Command execution failed for command ${interaction.commandName}`);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-      }
-    }
+botEvents.forEach((event: BaseEvent) => {
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args));
   }
 });
 
