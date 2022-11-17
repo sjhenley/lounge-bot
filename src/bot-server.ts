@@ -8,16 +8,18 @@ import logger from './logger/logger-init';
 
 dotenv.config();
 
+logger.debug('Starting bot');
+
 // Create a new client instance
 const client = new BotClient({ intents: [GatewayIntentBits.Guilds] });
 
 // Register commands to the client
-console.log('Registering commands...');
+logger.debug('Registering commands...');
 botCommands.forEach((cmd) => {
-  console.log(`Registering command: ${cmd.data.name}`);
+  logger.debug(`Registering command: ${cmd.data.name}`);
   client.commands.set(cmd.data.name, cmd);
 });
-console.log('All commands registered');
+logger.info('All commands registered');
 
 botEvents.forEach((event: BaseEvent) => {
   if (event.once) {
