@@ -2,9 +2,10 @@
   "name": "lounge-bot",
   "version": "2.0.0",
   "description": "A Discord bot for the lounge",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node src/index.ts"
   },
   "author": "Sam Henley",
   "license": "ISC",
@@ -15,5 +16,9 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
     "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "discord.js": "^14.6.0",
+    "dotenv": "^16.0.3"
   }
 }
