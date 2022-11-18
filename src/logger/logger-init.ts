@@ -17,6 +17,7 @@ const fileLoggerOptions: winston.transports.FileTransportOptions = {
 };
 
 const consoleLoggerOptions: winston.transports.ConsoleTransportOptions = {
+  level: 'silly',
   format: winston.format.combine(
     winston.format.colorize(),
     winston.format.splat(),
