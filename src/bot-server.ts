@@ -5,10 +5,11 @@ import botCommands from './commands';
 import botEvents from './events';
 import { BaseEvent } from './models/base-event.model';
 import logger from './logger/logger-init';
+import common from './config/common';
 
 dotenv.config();
 
-logger.debug('Starting bot');
+logger.info(`Starting app in mode ${process.env.NODE_ENV}`);
 
 // Create a new client instance
 const client = new BotClient({ intents: [GatewayIntentBits.Guilds] });
