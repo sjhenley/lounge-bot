@@ -31,7 +31,7 @@
       "error",
       "always"
     ],
-    "import/prefer-default-export": "warn",
+    "import/prefer-default-export": "off",
     "import/no-unresolved": "off",
     "import/extensions": [
       "off",
@@ -86,6 +86,7 @@
     "max-len": "off",
     "comma-dangle": "off",
     "import/no-dynamic-require": "off",
-    "global-require": "off"
+    "global-require": "off",
+    "no-shadow": "off",
   }
 }
