@@ -8,7 +8,7 @@ const topBalanceCommand: Command = {
     .setName(COMMAND.TOP_BALANCE.NAME)
     .setDescription(COMMAND.TOP_BALANCE.DESCRIPTION),
   execute: async (interaction: CommandInteraction) => {
-    await interaction.reply({ content: 'Command not implemented', ephemeral: true});
+    await interaction.editReply('Command not implemented');
   }
 };
 

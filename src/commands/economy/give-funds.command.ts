@@ -21,8 +21,6 @@ const giveFundsCommand: Command = {
         .setDescription(COMMAND.GIVE_FUNDS.OPTIONS.AMOUNT.DESCRIPTION)
         .setRequired(true)),
   execute: async (interaction: CommandInteraction) => {
-    await interaction.deferReply({ ephemeral: true });
-
     return EconomyController.getInstance().transferFunds(interaction)
       .then((result) => {
         interaction.editReply(`Trasferred ${result.amount} to ${result.targetUser.username}`);

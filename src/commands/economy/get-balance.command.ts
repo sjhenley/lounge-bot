@@ -16,8 +16,6 @@ const balanceCommand: Command = {
         .setName(COMMAND.BALANCE.OPTIONS.TARGET_USER.NAME)
         .setDescription(COMMAND.BALANCE.OPTIONS.TARGET_USER.DESCRIPTION)),
   execute: async (interaction: CommandInteraction) => {
-    await interaction.deferReply({ ephemeral: true });
-
     return EconomyController.getInstance().getBalanceForUser(interaction)
       .then((result: BalanceResult) => {
         interaction.editReply(`Balance for user ${result.username} is ${result.balance}`);

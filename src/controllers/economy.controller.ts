@@ -1,10 +1,11 @@
-import { CommandInteraction, User } from 'discord.js';
+import { CacheType, CommandInteraction, CommandInteractionOption, User } from 'discord.js';
 import DynamoDbDao from '../dao/dynamodb.dao';
 import EconomyService from '../services/economy.service';
 import logger from '../logger/logger-init';
 import COMMAND from '../const/command.constants';
 import BalanceResult from '../models/interaction-result-data/balance-result.model';
 import GiveFundsResult from '../models/interaction-result-data/give-funds-result.model';
+import AddFundsResult from '../models/interaction-result-data/add-funds-result.model';
 
 export default class EconomyController {
   private static instance: EconomyController;
@@ -54,25 +55,18 @@ export default class EconomyController {
     logger.debug('transferFunds | Begin processing transferFunds command...');
 
     const sourceUser = interaction.user;
-    const targetUser = interaction.options.getUser(COMMAND.GIVE_FUNDS.OPTIONS.TARGET_USER.NAME);
+    const targetUser = interaction.options.getUser(COMMAND.GIVE_FUNDS.OPTIONS.TARGET_USER.NAME) as User;
+    const amount = interaction.options.get(COMMAND.GIVE_FUNDS.OPTIONS.AMOUNT.NAME) as CommandInteractionOption<CacheType>;
 
-    const amount = interaction.options.get(COMMAND.GIVE_FUNDS.OPTIONS.AMOUNT.NAME);
-
-    
-    if (!targetUser) {
-      logger.warn('transferFunds | No target user specified');
-      throw new Error();
-    } else if (!amount || !amount.value) {
-      logger.warn('transferFunds | No amount specified');
-      throw new Error();
-    } else if (typeof amount.value !== 'number' ||amount.value < 0) {
-      logger.warn('transferFunds | Invalid amount');
-      throw new Error();
+    if (!this.validateFundsRequest(targetUser, amount)) {
+      logger.warn('transferFunds | Invalid funds request');
+      throw new Error('Invalid funds request');
     } else {
       logger.debug(`transferFunds | sourceUser: ${sourceUser.username}, targetUser: ${targetUser.username}, amount: ${amount.value}`);
+      const amountValue = amount.value as number;
 
       logger.debug('transferFunds | Removing amount from source user...');
-      const removeFundsFromSourceResult = await this.economyService.removeFundsFromUser(sourceUser.id, amount.value);
+      const removeFundsFromSourceResult = await this.economyService.removeFundsFromUser(sourceUser.id, amountValue);
 
       if (!removeFundsFromSourceResult) {
         logger.warn('transferFunds | Failed to remove funds from source user');
@@ -80,12 +74,12 @@ export default class EconomyController {
       } else {
         logger.debug('transferFunds | Successfully removed funds from source user');
         logger.debug('transferFunds | Adding amount to target user...');
-        const addFundsToUserResult = await this.economyService.addFundsToUser(targetUser.id, amount.value);
+        const addFundsToUserResult = await this.economyService.addFundsToUser(targetUser.id, amountValue);
 
         if (!addFundsToUserResult) {
           logger.warn('transferFunds | Failed to add funds to target user');
           logger.debug('transferFunds | Attempting to add funds back to source user');
-          await this.economyService.addFundsToUser(sourceUser.id, amount.value);
+          await this.economyService.addFundsToUser(sourceUser.id, amountValue);
 
           throw new Error();
         } else {
@@ -93,10 +87,58 @@ export default class EconomyController {
           return {
             sourceUser,
             targetUser,
-            amount: amount.value
+            amount: amountValue
           };
         }
       }
     }
+  }
+
+  public async addFundsToUser(interaction: CommandInteraction): Promise<AddFundsResult> {
+    logger.debug('addFundsToUser | Begin processing addFundsToUser command...');
+
+    const targetUser = interaction.options.getUser(COMMAND.GIVE_FUNDS.OPTIONS.TARGET_USER.NAME) as User;
+    const amount = interaction.options.get(COMMAND.GIVE_FUNDS.OPTIONS.AMOUNT.NAME) as CommandInteractionOption<CacheType>;
+
+    if (!this.validateFundsRequest(targetUser, amount)) {
+      logger.warn('addFundsToUser | Invalid funds request');
+      throw new Error('Invalid funds request');
+    } else {
+      logger.debug(`addFundsToUser | targetUser: ${targetUser.username}, amount: ${amount.value}`);
+      const amountValue = amount.value as number;
+
+      return this.economyService.addFundsToUser(targetUser.id, amountValue)
+        .then((result) => {
+          if (result) {
+            logger.debug('addFundsToUser | Successfully added funds to user');
+            return {
+              targetUser,
+              amount: amountValue
+            };
+          } else {
+            logger.warn('addFundsToUser | Failed to add funds to user');
+            throw new Error();
+          }
+        });
+    }
+  }
+
+  private validateFundsRequest(targetUser: User | null, amount: CommandInteractionOption<CacheType> | null): boolean {
+    logger.debug('validateFundsRequest | Begin validating funds request...');
+
+    let isValid = true;
+    if (targetUser == null) {
+      logger.debug('validateFundsRequest | No target user specified');
+      isValid = false;
+    } else if (!amount || !amount.value) {
+      logger.debug('validateFundsRequest | No amount specified');
+      isValid = false;
+    } else if (typeof amount.value !== 'number' || amount.value < 0) {
+      logger.debug('validateFundsRequest | Invalid amount');
+      isValid = false;
+    }
+
+    logger.debug(`validateFundsRequest | Funds request is valid: ${isValid}`);
+    return isValid;
   }
 }
