@@ -1,4 +1,9 @@
-import { CacheType, CommandInteraction, CommandInteractionOption, User } from 'discord.js';
+import {
+  CacheType,
+  CommandInteraction,
+  CommandInteractionOption,
+  User
+} from 'discord.js';
 import DynamoDbDao from '../dao/dynamodb.dao';
 import EconomyService from '../services/economy.service';
 import logger from '../logger/logger-init';
@@ -32,7 +37,7 @@ export default class EconomyController {
     logger.debug('getBalanceForUser | Begin processing getBalanceForUser command...');
 
     // if no user is specified, get the balance for the user who invoked the command
-    const userOption = interaction.options.getUser(COMMAND.BALANCE.OPTIONS.TARGET_USER.NAME); 
+    const userOption = interaction.options.getUser(COMMAND.BALANCE.OPTIONS.TARGET_USER.NAME);
     let targetUser: User;
 
     if (userOption) {
