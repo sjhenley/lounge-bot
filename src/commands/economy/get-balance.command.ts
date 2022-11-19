@@ -7,6 +7,7 @@ import BalanceResult from '../../models/interaction-result-data/balance-result.m
 
 
 const balanceCommand: Command = {
+  priviledgedCommand: false,
   data: new SlashCommandBuilder()
     .setName(COMMAND.BALANCE.NAME)
     .setDescription(COMMAND.BALANCE.DESCRIPTION)
@@ -15,18 +16,14 @@ const balanceCommand: Command = {
         .setName(COMMAND.BALANCE.OPTIONS.TARGET_USER.NAME)
         .setDescription(COMMAND.BALANCE.OPTIONS.TARGET_USER.DESCRIPTION)),
   execute: async (interaction: CommandInteraction) => {
-    logger.info('User invoked balance command');
     await interaction.deferReply({ ephemeral: true });
 
-    EconomyController.getInstance().getBalanceForUser(interaction)
+    return EconomyController.getInstance().getBalanceForUser(interaction)
       .then((result: BalanceResult) => {
         interaction.editReply(`Balance for user ${result.username} is ${result.balance}`);
       })
       .catch(() => {
         interaction.editReply('There was an error retrieving the balance for the user');
-      })
-      .finally(() => {
-        logger.info('Finished processing balance command');
       });
   }
 };

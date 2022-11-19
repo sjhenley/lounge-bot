@@ -3,6 +3,7 @@ import COMMAND from '../../const/command.constants';
 import { Command } from '../../models/command.model';
 
 const topBalanceCommand: Command = {
+  priviledgedCommand: false,
   data: new SlashCommandBuilder()
     .setName(COMMAND.TOP_BALANCE.NAME)
     .setDescription(COMMAND.TOP_BALANCE.DESCRIPTION),

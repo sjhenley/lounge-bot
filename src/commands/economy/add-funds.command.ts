@@ -3,6 +3,7 @@ import COMMAND from '../../const/command.constants';
 import { Command } from '../../models/command.model';
 
 const addFundsCommand: Command = {
+  priviledgedCommand: true,
   data: new SlashCommandBuilder()
     .setName(COMMAND.ADD_FUNDS.NAME)
     .setDescription(COMMAND.ADD_FUNDS.DESCRIPTION)
