@@ -10,7 +10,7 @@ const interactionCreateEvent: InteractionEvent = {
   once: false,
   execute: async (interaction: BotInteraction) => {
     if (!interaction.isCommand()) return;
-    
+
     await interaction.deferReply({ ephemeral: true });
 
     const command = interaction.client.commands.get(interaction.commandName);

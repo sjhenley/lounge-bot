@@ -31,5 +31,3 @@ export default abstract class BaseDao {
    */
   public abstract deleteUser(userId: string): Promise<boolean>;
 }
-
-

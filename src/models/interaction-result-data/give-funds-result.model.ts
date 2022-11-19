@@ -4,6 +4,6 @@ interface GiveFundsResult {
   amount: number;
   sourceUser: User;
   targetUser: User;
-};
+}
 
 export default GiveFundsResult;

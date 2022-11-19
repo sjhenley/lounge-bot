@@ -10,7 +10,7 @@ import DiscordService from '../services/discord.service';
 
 export default class EconomyController {
   private static instance: EconomyController;
-  
+
   private economyService: EconomyService;
 
   private constructor() {
@@ -42,11 +42,11 @@ export default class EconomyController {
     }
 
     return this.economyService.getBalanceForUserId(targetUser.id)
-      .then( (balance) => {
+      .then((balance) => {
         const balanceResult: BalanceResult = {
           username: targetUser.username,
           balance,
-        }
+        };
         logger.debug(`getBalanceForUser | received user balance from service: ${balance}`);
         return balanceResult;
       });
@@ -59,7 +59,7 @@ export default class EconomyController {
     const targetUser = interaction.options.getUser(COMMAND.GIVE_FUNDS.OPTIONS.TARGET_USER.NAME) as User;
     const amount = interaction.options.get(COMMAND.GIVE_FUNDS.OPTIONS.AMOUNT.NAME) as CommandInteractionOption<CacheType>;
 
-    if (!this.validateFundsRequest(targetUser, amount)) {
+    if (!EconomyController.validateFundsRequest(targetUser, amount)) {
       logger.warn('transferFunds | Invalid funds request');
       throw new Error('Invalid funds request');
     } else {
@@ -101,7 +101,7 @@ export default class EconomyController {
     const targetUser = interaction.options.getUser(COMMAND.GIVE_FUNDS.OPTIONS.TARGET_USER.NAME) as User;
     const amount = interaction.options.get(COMMAND.GIVE_FUNDS.OPTIONS.AMOUNT.NAME) as CommandInteractionOption<CacheType>;
 
-    if (!this.validateFundsRequest(targetUser, amount)) {
+    if (!EconomyController.validateFundsRequest(targetUser, amount)) {
       logger.warn('addFundsToUser | Invalid funds request');
       throw new Error('Invalid funds request');
     } else {
@@ -116,15 +116,15 @@ export default class EconomyController {
               targetUser,
               amount: amountValue
             };
-          } else {
-            logger.warn('addFundsToUser | Failed to add funds to user');
-            throw new Error();
           }
+
+          logger.warn('addFundsToUser | Failed to add funds to user');
+          throw new Error();
         });
     }
   }
 
-  public async getTopBalanceUsers(interaction: CommandInteraction): Promise<BalanceResult[]> {
+  public async getTopBalanceUsers(): Promise<BalanceResult[]> {
     logger.debug('getTopBalanceUsers | Begin processing getTopBalanceUsers command...');
 
     const limit = 5;
@@ -132,8 +132,8 @@ export default class EconomyController {
     return this.economyService.getTopBalanceUsers(limit)
       .then((results) => {
         logger.debug(`getTopBalanceUsers | Received top users: ${JSON.stringify(results)}`);
-        logger.debug(`getTopBalanceUsers | Mapping user IDs to usernames...`);
-        
+        logger.debug('getTopBalanceUsers | Mapping user IDs to usernames...');
+
         const balanceResults: BalanceResult[] = results.map((user) => {
           let username: string;
           try {
@@ -155,7 +155,7 @@ export default class EconomyController {
       });
   }
 
-  private validateFundsRequest(targetUser: User | null, amount: CommandInteractionOption<CacheType> | null): boolean {
+  private static validateFundsRequest(targetUser: User | null, amount: CommandInteractionOption<CacheType> | null): boolean {
     logger.debug('validateFundsRequest | Begin validating funds request...');
 
     let isValid = true;

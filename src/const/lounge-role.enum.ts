@@ -8,11 +8,11 @@ export enum LoungeRole {
  */
 export const mapStringToLoungeRole = (roleString: string): LoungeRole => {
   switch (roleString) {
-    case 'admin':
-      return LoungeRole.ADMIN;
-    case 'user':
-      return LoungeRole.USER;
-    default:
-      throw new Error('Invalid role string');
+  case 'admin':
+    return LoungeRole.ADMIN;
+  case 'user':
+    return LoungeRole.USER;
+  default:
+    throw new Error('Invalid role string');
   }
-}
+};

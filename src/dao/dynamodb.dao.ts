@@ -1,4 +1,15 @@
-import { AttributeValue, DeleteItemCommand, DeleteItemCommandInput, DynamoDB, PutItemCommand, PutItemCommandInput, QueryCommand, QueryCommandInput, ScanCommand, ScanCommandInput } from '@aws-sdk/client-dynamodb';
+import {
+  AttributeValue,
+  DeleteItemCommand,
+  DeleteItemCommandInput,
+  DynamoDB,
+  PutItemCommand,
+  PutItemCommandInput,
+  QueryCommand,
+  QueryCommandInput,
+  ScanCommand,
+  ScanCommandInput
+} from '@aws-sdk/client-dynamodb';
 import common from '../config/common';
 import DATABASE from '../const/table.constants';
 import { LoungeRole, mapStringToLoungeRole } from '../const/lounge-role.enum';
@@ -45,7 +56,7 @@ export default class DynamoDbDao extends BaseDao {
         return false;
       });
   }
-  
+
   public async getUser(userId: string): Promise<LoungeUser> {
     logger.debug('Building getUser command input...');
 
@@ -58,7 +69,7 @@ export default class DynamoDbDao extends BaseDao {
       ExpressionAttributeValues: {
         ':u': { S: userId },
       }
-    }
+    };
 
     const command = new QueryCommand(commandInput);
 
@@ -67,13 +78,13 @@ export default class DynamoDbDao extends BaseDao {
       .then((data) => {
         logger.debug(`getUser request returned successfully: ${JSON.stringify(data)}`);
         if (data.Items && data.Items[0]) {
-          const userObject: LoungeUser = this.mapUserResultToLoungeUser(data.Items[0]);
+          const userObject: LoungeUser = DynamoDbDao.mapUserResultToLoungeUser(data.Items[0]);
           logger.debug(`getUser | returning user object: ${JSON.stringify(userObject)}`);
           return userObject;
-        } else {
-          logger.warn('getUser request returned no data');
-          throw new Error();
         }
+
+        logger.warn('getUser request returned no data');
+        throw new Error();
       })
       .catch((error) => {
         logger.error(`getUser request error: ${error}`);
@@ -81,7 +92,6 @@ export default class DynamoDbDao extends BaseDao {
       });
   }
 
-  
   public getAllUsers(): Promise<LoungeUser[]> {
     logger.debug('Building getAllUsers command input...');
     const commandInput: ScanCommandInput = {
@@ -95,11 +105,11 @@ export default class DynamoDbDao extends BaseDao {
       .then((data) => {
         logger.debug(`getAllUsers request returned successfully: ${JSON.stringify(data)}`);
         if (data.Items) {
-          return data.Items.map((item) => this.mapUserResultToLoungeUser(item));
-        } else {
-          logger.warn('getAllUsers request returned no data');
-          throw new Error();
+          return data.Items.map((item) => DynamoDbDao.mapUserResultToLoungeUser(item));
         }
+
+        logger.warn('getAllUsers request returned no data');
+        throw new Error();
       })
       .catch((error) => {
         logger.error(`getAllUsers request error: ${error}`);
@@ -127,11 +137,11 @@ export default class DynamoDbDao extends BaseDao {
       .then((data) => {
         logger.debug(`getUsersWithRole request returned successfully: ${JSON.stringify(data)}`);
         if (data.Items) {
-          return data.Items.map((item) => this.mapUserResultToLoungeUser(item));
-        } else {
-          logger.warn('getUsersWithRole request returned no data');
-          throw new Error();
+          return data.Items.map((item) => DynamoDbDao.mapUserResultToLoungeUser(item));
         }
+
+        logger.warn('getUsersWithRole request returned no data');
+        throw new Error();
       })
       .catch((error) => {
         logger.error(`getUsersWithRole request error: ${error}`);
@@ -167,7 +177,7 @@ export default class DynamoDbDao extends BaseDao {
    * Helper method to validate record data and transform into a LoungeUser object
    * @param userResult Record data from the database
    */
-  private mapUserResultToLoungeUser(userResult: Record<string, AttributeValue>): LoungeUser {
+  private static mapUserResultToLoungeUser(userResult: Record<string, AttributeValue>): LoungeUser {
     logger.debug('Mapping user result to LoungeUser object...');
 
     // validate userId parameter
@@ -195,8 +205,8 @@ export default class DynamoDbDao extends BaseDao {
     const userBalanceColumn = userResult[DATABASE.COLUMNS.BALANCE];
     let balance = 0;
     if (userBalanceColumn && userBalanceColumn.N) {
-      balance = parseInt(userBalanceColumn.N);
-      if (isNaN(balance)) {
+      balance = parseInt(userBalanceColumn.N, 10);
+      if (Number.isNaN(balance)) {
         throw new Error('Invalid user balance');
       }
     }
