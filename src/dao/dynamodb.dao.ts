@@ -1,6 +1,6 @@
 import { AttributeValue, DeleteItemCommand, DeleteItemCommandInput, DynamoDB, PutItemCommand, PutItemCommandInput, QueryCommand, QueryCommandInput, ScanCommand, ScanCommandInput } from '@aws-sdk/client-dynamodb';
 import common from '../config/common';
-import DATABASE from '../const/economy-table.constants';
+import DATABASE from '../const/table.constants';
 import { LoungeRole, mapStringToLoungeRole } from '../const/lounge-role.enum';
 import logger from '../logger/logger-init';
 import BaseDao from './base.dao';
@@ -13,27 +13,13 @@ const config = common.config();
  * @Author Sam Henley
  */
 export default class DynamoDbDao extends BaseDao {
-  private static instance: DynamoDbDao;
-
   private dbClient: DynamoDB;
 
-  private constructor() {
+  constructor() {
     super();
     this.dbClient = new DynamoDB({ region: process.env.AWS_DEFAULT_REGION });
   }
 
-  /**
-   * Singleton method
-   * @returns singleton instance of the class
-   */
-  public static getInstance(): DynamoDbDao {
-    if (!DynamoDbDao.instance) {
-      DynamoDbDao.instance = new DynamoDbDao();
-    }
-    return DynamoDbDao.instance;
-  }
-
-  
   public async putUser(user: LoungeUser): Promise<boolean> {
     logger.debug('Building putUser command input...');
 
@@ -81,7 +67,9 @@ export default class DynamoDbDao extends BaseDao {
       .then((data) => {
         logger.debug(`getUser request returned successfully: ${JSON.stringify(data)}`);
         if (data.Items && data.Items[0]) {
-          return this.mapUserResultToLoungeUser(data.Items[0]);
+          const userObject: LoungeUser = this.mapUserResultToLoungeUser(data.Items[0]);
+          logger.debug(`getUser | returning user object: ${JSON.stringify(userObject)}`);
+          return userObject;
         } else {
           logger.warn('getUser request returned no data');
           throw new Error();
