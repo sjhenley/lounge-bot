@@ -5,6 +5,7 @@ import botCommands from './commands';
 import botEvents from './events';
 import { BaseEvent } from './models/base-event.model';
 import logger from './logger/logger-init';
+import DiscordService from './services/discord.service';
 
 dotenv.config();
 
@@ -20,6 +21,9 @@ botCommands.forEach((cmd) => {
   client.commands.set(cmd.data.name, cmd);
 });
 logger.info('All commands registered');
+
+// Start the Discord Service
+DiscordService.getInstance(client);
 
 botEvents.forEach((event: BaseEvent) => {
   if (event.once) {

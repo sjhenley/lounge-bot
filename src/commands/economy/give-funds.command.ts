@@ -1,6 +1,9 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
 import COMMAND from '../../const/command.constants';
+import EconomyController from '../../controllers/economy.controller';
+import logger from '../../logger/logger-init';
 import { Command } from '../../models/command.model';
+import DiscordService from '../../services/discord.service';
 
 const giveFundsCommand: Command = {
   data: new SlashCommandBuilder()
@@ -17,7 +20,20 @@ const giveFundsCommand: Command = {
         .setDescription(COMMAND.GIVE_FUNDS.OPTIONS.AMOUNT.DESCRIPTION)
         .setRequired(true)),
   execute: async (interaction: CommandInteraction) => {
-    await interaction.reply({ content: 'Command not implemented', ephemeral: true});
+    logger.info('User invoked give-funds command');
+    await interaction.deferReply({ ephemeral: true });
+
+    EconomyController.getInstance().transferFunds(interaction)
+      .then((result) => {
+        interaction.editReply(`Trasferred ${result.amount} to ${result.targetUser.username}`);
+        DiscordService.getInstance().sendDirectMessageToUser(result.targetUser.id, `You have received ${result.amount} from ${result.sourceUser.username}!`);
+      })
+      .catch(() => {
+        interaction.editReply('There was an error transferring funds to the user');
+      })
+      .finally(() => {
+        logger.info('Finished processing give-funds command');
+      });
   }
 };
 
