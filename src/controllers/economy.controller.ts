@@ -6,6 +6,7 @@ import COMMAND from '../const/command.constants';
 import BalanceResult from '../models/interaction-result-data/balance-result.model';
 import GiveFundsResult from '../models/interaction-result-data/give-funds-result.model';
 import AddFundsResult from '../models/interaction-result-data/add-funds-result.model';
+import DiscordService from '../services/discord.service';
 
 export default class EconomyController {
   private static instance: EconomyController;
@@ -121,6 +122,37 @@ export default class EconomyController {
           }
         });
     }
+  }
+
+  public async getTopBalanceUsers(interaction: CommandInteraction): Promise<BalanceResult[]> {
+    logger.debug('getTopBalanceUsers | Begin processing getTopBalanceUsers command...');
+
+    const limit = 5;
+
+    return this.economyService.getTopBalanceUsers(limit)
+      .then((results) => {
+        logger.debug(`getTopBalanceUsers | Received top users: ${results}`);
+        logger.debug(`getTopBalanceUsers | Mapping user IDs to usernames...`);
+        
+        const balanceResults: BalanceResult[] = results.map((user) => {
+          let username: string;
+          try {
+            logger.debug(`getTopBalanceUsers | Getting username for user ID: ${user.userId}`);
+            username = DiscordService.getInstance().retrieveUsername(user.userId);
+          } catch {
+            logger.warn(`getTopBalanceUsers | Failed to get username for user ID: ${user.userId}`);
+            username = `<id:${user.userId}>`;
+          }
+
+          return {
+            username,
+            balance: user.balance
+          };
+        });
+
+        logger.debug(`getTopBalanceUsers | Returning top users: ${balanceResults}`);
+        return balanceResults;
+      });
   }
 
   private validateFundsRequest(targetUser: User | null, amount: CommandInteractionOption<CacheType> | null): boolean {

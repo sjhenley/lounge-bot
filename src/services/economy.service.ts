@@ -1,5 +1,6 @@
 import BaseDao from '../dao/base.dao';
 import logger from '../logger/logger-init';
+import LoungeUser from '../models/lounge-user.model';
 
 export default class EconomyService {
 
@@ -45,6 +46,19 @@ export default class EconomyService {
 
         logger.debug(`addFundsToUser | Saving updated user to dao: ${JSON.stringify(user)}`);
         return this.dao.putUser(user);
+      });
+  }
+
+  public async getTopBalanceUsers(limit: number): Promise<LoungeUser[]> {
+    logger.debug(`getTopBalanceUsers | Retrieving all users`);
+    return this.dao.getAllUsers()
+      .then((users) =>{
+        logger.debug(`getTopBalanceUsers | Retrieved ${users.length} users from dao`);
+        logger.debug(`getTopBalanceUsers | Sorting users by balance`);
+        users.sort((a, b) => b.balance - a.balance);
+
+        logger.debug(`getTopBalanceUsers | Returning top ${limit} users`);
+        return users.slice(0, limit);
       });
   }
 }

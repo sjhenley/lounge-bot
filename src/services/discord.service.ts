@@ -16,6 +16,11 @@ export default class DiscordService {
     return DiscordService.instance;
   }
 
+  /**
+   * Sends a Discord Direct Message to a user
+   * @param userId ID of user to receive message
+   * @param message message content
+   */
   public async sendDirectMessageToUser(userId: string, message: string): Promise<void> {
     logger.debug(`sendDirectMessageToUser | Attempting to send message to user ${userId}`);
 
@@ -30,6 +35,28 @@ export default class DiscordService {
       } else {
         logger.debug('sendDirectMessageToUser | Sending message');
         await user.send(message);
+      }
+    }
+  }
+
+  /**
+   * Resolves a user ID to a username
+   * @param userId ID of user to resolve
+   */
+  public retrieveUsername(userId: string): string {
+    logger.debug(`retrieveUsername | Attempting to retrieve username for user ${userId}`);
+
+    if (!this.client) {
+      logger.error('retrieveUsername | Client not defined');
+      throw new Error();
+    } else {
+      const user = this.client.users.cache.get(userId);
+      if (!user) {
+        logger.error(`retrieveUsername | User ${userId} not found`);
+        throw new Error('');
+      } else {
+        logger.debug(`retrieveUsername | Returning username: ${user.username}`);
+        return user.username;
       }
     }
   }
