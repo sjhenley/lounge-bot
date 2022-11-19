@@ -34,7 +34,12 @@ export default class DiscordService {
         throw new Error('');
       } else {
         logger.debug('sendDirectMessageToUser | Sending message');
-        await user.send(message);
+        try {
+          await user.send(message);
+          logger.info(`Sent direct message to user ${userId}`);
+        } catch (error) {
+          logger.error(`Error sending direct message to user ${userId}: ${error}`);
+        }
       }
     }
   }

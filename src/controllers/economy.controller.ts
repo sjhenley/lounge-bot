@@ -12,7 +12,9 @@ import BalanceResult from '../models/interaction-result-data/balance-result.mode
 import GiveFundsResult from '../models/interaction-result-data/give-funds-result.model';
 import AddFundsResult from '../models/interaction-result-data/add-funds-result.model';
 import DiscordService from '../services/discord.service';
+import common from '../config/common';
 
+const config = common.config();
 export default class EconomyController {
   private static instance: EconomyController;
 
@@ -177,5 +179,56 @@ export default class EconomyController {
 
     logger.debug(`validateFundsRequest | Funds request is valid: ${isValid}`);
     return isValid;
+  }
+
+  /**
+   * Ensure the top balance user is on the correct member.
+   */
+  public async updateTopBalanceRole(interaction: CommandInteraction): Promise<boolean> {
+    logger.info('Begin updating top balance role...');
+    logger.debug('updateTopBalanceRole | Retrieving guild object...');
+    const { guild } = interaction;
+    if (!guild) {
+      logger.warn('updateTopBalanceRole | No guild found');
+      return false;
+    }
+
+    logger.debug('updateTopBalanceRole | Retrieving top balance role...');
+    const topBalanceRole = guild.roles.resolve(config.guild.topBalanceRole.roleId);
+    if (!topBalanceRole) {
+      logger.error('updateTopBalanceRole | Could not find top balance role');
+      return false;
+    }
+
+    // retreive the top balance user
+    logger.debug('updateTopBalanceRole | Retrieving top balance user from database...');
+    const topBalanceUser = (await this.economyService.getTopBalanceUsers(1))[0];
+
+    logger.debug('updateTopBalanceRole | Attempting to resolve top balance user with a Discord GuildMember...');
+    const topBalanceGuildMember = guild.members.resolve(topBalanceUser.userId);
+
+    if (!topBalanceGuildMember) {
+      logger.error(`updateTopBalanceRole | Could not find top balance guild member with ID: ${topBalanceUser.userId}`);
+      return false;
+    }
+
+    // retrieve member(s) with the top balance role
+    const currentTopBalanceMembers = topBalanceRole.members;
+
+    // add role to top balance user
+    logger.debug('updateTopBalanceRole | Adding top balance role to top balance user...');
+    await topBalanceGuildMember.roles.add(topBalanceRole);
+
+    // remove role from all other members
+    logger.debug('updateTopBalanceRole | Removing top balance role from all other members...');
+    currentTopBalanceMembers.forEach(async (member) => {
+      if (member.id !== topBalanceGuildMember.id) {
+        logger.debug(`updateTopBalanceRole | Removing top balance role from member ${member.user.username}...`);
+        await member.roles.remove(topBalanceRole);
+      }
+    });
+
+    logger.info('Updated top balance role members');
+    return true;
   }
 }

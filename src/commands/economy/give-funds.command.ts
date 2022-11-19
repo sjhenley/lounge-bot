@@ -18,9 +18,10 @@ const giveFundsCommand: Command = {
       .setDescription(COMMAND.GIVE_FUNDS.OPTIONS.AMOUNT.DESCRIPTION)
       .setRequired(true)),
   execute: async (interaction: CommandInteraction) => EconomyController.getInstance().transferFunds(interaction)
-    .then((result) => {
+    .then(async (result) => {
       interaction.editReply(`Trasferred ${result.amount} to ${result.targetUser.username}`);
-      DiscordService.getInstance().sendDirectMessageToUser(result.targetUser.id, `You have received ${result.amount} from ${result.sourceUser.username}!`);
+      await EconomyController.getInstance().updateTopBalanceRole(interaction);
+      await DiscordService.getInstance().sendDirectMessageToUser(result.targetUser.id, `You have received ${result.amount} from ${result.sourceUser.username}!`);
     })
     .catch(() => {
       interaction.editReply('There was an error transferring funds to the user');
