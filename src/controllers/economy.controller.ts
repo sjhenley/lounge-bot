@@ -131,7 +131,7 @@ export default class EconomyController {
 
     return this.economyService.getTopBalanceUsers(limit)
       .then((results) => {
-        logger.debug(`getTopBalanceUsers | Received top users: ${results}`);
+        logger.debug(`getTopBalanceUsers | Received top users: ${JSON.stringify(results)}`);
         logger.debug(`getTopBalanceUsers | Mapping user IDs to usernames...`);
         
         const balanceResults: BalanceResult[] = results.map((user) => {
@@ -150,7 +150,7 @@ export default class EconomyController {
           };
         });
 
-        logger.debug(`getTopBalanceUsers | Returning top users: ${balanceResults}`);
+        logger.debug(`getTopBalanceUsers | Returning top users: ${JSON.stringify(balanceResults)}`);
         return balanceResults;
       });
   }
