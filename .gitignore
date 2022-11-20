@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/windows,visualstudiocode,git,node,dotenv
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,visualstudiocode,git,node,dotenv
 
+### ignore generated js files ###
+*.js
+
 ### dotenv ###
 .env
 
