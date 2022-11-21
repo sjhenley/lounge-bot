@@ -84,11 +84,7 @@ export default class DynamoDbDao extends BaseDao {
         }
 
         logger.warn('getUser request returned no data');
-        throw new Error();
-      })
-      .catch((error) => {
-        logger.error(`getUser request error: ${error}`);
-        throw new Error(error);
+        throw new Error('User not found');
       });
   }
 

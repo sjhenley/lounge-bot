@@ -1,3 +1,4 @@
+import { LoungeRole } from '../const/lounge-role.enum';
 import BaseDao from '../dao/base.dao';
 import logger from '../logger/logger-init';
 import LoungeUser from '../models/lounge-user.model';
@@ -51,6 +52,21 @@ export default class EconomyService {
 
         logger.debug(`addFundsToUser | Saving updated user to dao: ${JSON.stringify(user)}`);
         return this.dao.putUser(updatedUser);
+      }).catch((error) => {
+        if (error.message === 'User not found') {
+          // If user does not exist in database, create a new user with the specified balance
+          logger.debug(`addFundsToUser | User does not exist in database. Creating new user with balance ${amount}`);
+          const newUser: LoungeUser = {
+            userId,
+            role: LoungeRole.USER,
+            balance: amount
+          };
+
+          logger.debug(`addFundsToUser | Saving new user to dao: ${JSON.stringify(newUser)}`);
+          return this.dao.putUser(newUser);
+        }
+        logger.error(`addFundsToUser | getUser request error: ${error}`);
+        throw new Error(error);
       });
   }
 
