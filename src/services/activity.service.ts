@@ -50,6 +50,7 @@ export default class ActivityService {
             userId,
             role: LoungeRole.USER,
             balance: 0,
+            joinedVoiceTimestamp: -1,
             activityScore,
           };
 
@@ -86,6 +87,7 @@ export default class ActivityService {
             userId,
             role: LoungeRole.USER,
             balance: 0,
+            joinedVoiceTimestamp: -1,
             activityScore: 0,
           };
 

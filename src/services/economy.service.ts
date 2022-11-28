@@ -60,6 +60,7 @@ export default class EconomyService {
             userId,
             role: LoungeRole.USER,
             balance: amount,
+            joinedVoiceTimestamp: -1,
             activityScore: 0
           };
 

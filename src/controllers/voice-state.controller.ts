@@ -15,9 +15,9 @@ export default class VoiceStateController {
    * @returns result of handling the event
    */
   public static async handleMemberJoinedVoiceChannel(oldState: VoiceState, newState: VoiceState): Promise<boolean> {
-    // TODO: log time uesr entered voice channel and save to db
-    logger.warn('handleMemberJoinedVoiceChannel | Event handler not implemented');
-    return false;
+    logger.debug('handleMemberJoinedVoiceChannel | Handling member joined voice channel event...');
+    const timeJoined = Date.now();
+    return ActivityController.getInstance().setUserJoinedVoiceTimestamp(oldState.member.id, timeJoined);
   }
 
   /**
@@ -29,6 +29,7 @@ export default class VoiceStateController {
    */
   public static async handleMemberLeftVoiceChannel(oldState: VoiceState, newState: VoiceState): Promise<boolean> {
     logger.debug('handleMemberLeftVoiceChannel | Handling member left voice channel event...');
+    logger.warn('handleMemberLeftVoiceChannel | No handler for this event yet');
     return ActivityController.getInstance().rewardActivityScoreForVoice(oldState);
   }
 
@@ -40,7 +41,9 @@ export default class VoiceStateController {
    * @returns result of handling the event
    */
   public static async handleMemberSwitchedVoiceChannel(oldState: VoiceState, newState: VoiceState): Promise<boolean> {
-    logger.debug('handleMemberLeftVoiceChannel | Handling member switched voice channel event...');
-    return ActivityController.getInstance().rewardActivityScoreForVoice(oldState);
+    logger.debug('handleMemberSwitchedVoiceChannel | Handling member switched voice channel event...');
+
+    logger.warn('handleMemberSwitchedVoiceChannel | No handler for this event yet');
+    return true;
   }
 }

@@ -5,6 +5,7 @@ interface LoungeUser {
   role: LoungeRole;
   balance: number;
   activityScore: number;
+  joinedVoiceTimestamp: number;
 }
 
 export default LoungeUser;

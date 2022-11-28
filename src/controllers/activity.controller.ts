@@ -9,6 +9,8 @@ import COMMAND from '../const/command.constants';
 import common from '../config/common';
 import ActivityService from '../services/activity.service';
 import ActivityScoreResult from '../models/interaction-result-data/get-activity-result.model';
+import LoungeUserService from '../services/lounge-user.service';
+import LoungeUser from '../models/lounge-user.model';
 
 const config = common.config();
 
@@ -21,8 +23,11 @@ export default class ActivityController {
 
   private activityService: ActivityService;
 
+  private loungeUserService: LoungeUserService;
+
   private constructor() {
     this.activityService = new ActivityService(new DynamoDbDao());
+    this.loungeUserService = new LoungeUserService(new DynamoDbDao());
   }
 
   /**
@@ -100,41 +105,83 @@ export default class ActivityController {
 
     // TODO: joinedTimestamp is the time the member joind the Discord server, NOT the voice channel
     // Need to retreive the time the member joined the voice channel via database
-    const { id, joinedTimestamp } = member;
-    logger.debug(`rewardActivityScoreForVoice | Member ${id} joined voice channel at ${joinedTimestamp}`);
 
-    if (!joinedTimestamp) {
-      logger.error(`rewardActivityScoreForVoice | Unable to determine when member ${id} joined voice channel`);
-      return false;
-    }
+    const { id } = member;
 
-    const leftTimestamp = Date.now();
-    const timeInVoice = leftTimestamp - joinedTimestamp;
+    return this.loungeUserService.getUserById(id)
+      .then((userRecord) => {
+        const joinedTimestamp = userRecord.joinedVoiceTimestamp;
 
-    // calculate minues in voice channel
-    const minutesInVoice = Math.floor(timeInVoice / 1000 / 60);
-    const activityScorePerMinute = config.activityScore.reward.voice;
+        if (Number.isNaN(joinedTimestamp) || joinedTimestamp <= 0) {
+          logger.error(`rewardActivityScoreForVoice | Unable to determine when member ${id} joined voice channel`);
+          return false;
+        }
 
-    logger.debug(`rewardActivityScoreForVoice | Determined member ${id} was in voice channel for ${minutesInVoice} minute(s)`);
+        const leftTimestamp = Date.now();
+        logger.debug(`rewardActivityScoreForVoice | Member ${id} joined voice channel at ${joinedTimestamp}`);
+        logger.debug(`rewardActivityScoreForVoice | Member ${id} left voice channel at ${leftTimestamp}`);
 
-    // calculate activity score to reward
-    const activityScore = minutesInVoice * activityScorePerMinute;
-    logger.debug(`rewardActivityScoreForVoice | Eligible activity score for member ${id} is ${activityScore}`);
+        const timeInVoice = leftTimestamp - joinedTimestamp;
 
-    if (activityScore <= 0) {
-      logger.debug(`rewardActivityScoreForVoice | No activity score to reward to user ${id}`);
-      return false;
-    }
+        // calculate minues in voice channel
+        const minutesInVoice = Math.floor(timeInVoice / 1000 / 60);
+        const activityScorePerMinute = config.activityScore.reward.voice;
 
-    // reward activity score to user
-    logger.debug(`rewardActivityScoreForVoice | Atteping to add score ${activityScore} to user ${id}`);
-    return this.activityService.addUserActivityScore(id, activityScore)
-      .then(() => {
-        logger.debug(`rewardActivityScoreForVoice | Successfully added score ${activityScore} to user ${id}`);
-        return true;
+        logger.debug(`rewardActivityScoreForVoice | Determined member ${id} was in voice channel for ${minutesInVoice} minute(s)`);
+
+        // calculate activity score to reward
+        const activityScore = minutesInVoice * activityScorePerMinute;
+        logger.debug(`rewardActivityScoreForVoice | Eligible activity score for member ${id} is ${activityScore}`);
+
+        // reward activity score to user
+        logger.debug(`rewardActivityScoreForVoice | Atteping to add score ${activityScore} to user ${id}`);
+        const updatedUser: LoungeUser = {
+          ...userRecord,
+          joinedVoiceTimestamp: -1,
+          activityScore: userRecord.activityScore + activityScore,
+        };
+
+        logger.debug(`addUserActivityScore | Saving updated user to dao: ${JSON.stringify(updatedUser)}`);
+        return this.loungeUserService.putUser(updatedUser)
+          .then(() => {
+            logger.debug(`rewardActivityScoreForVoice | Successfully added score ${activityScore} to user ${id}`);
+            return true;
+          })
+          .catch((error) => {
+            logger.error(`rewardActivityScoreForVoice | Error adding activity score to user ${id}: ${error}`);
+            return false;
+          });
       })
       .catch((error) => {
-        logger.error(`rewardActivityScoreForVoice | Error adding activity score to user ${id}: ${error}`);
+        logger.error(`rewardActivityScoreForVoice | Error retrieving user record for user ${id}: ${error}`);
+        return false;
+      });
+  }
+
+  public async setUserJoinedVoiceTimestamp(userId: string, timestamp: number): Promise<boolean> {
+    logger.debug(`setUserJoinedVoiceTimestamp | Setting user ${userId} joined voice timestamp to ${timestamp}`);
+
+    logger.debug(`setUserJoinedVoiceTimestamp | retrieving user record with ID ${userId}`);
+    return this.loungeUserService.getUserById(userId)
+      .then((userRecord) => {
+        const updatedUser = {
+          ...userRecord,
+          joinedVoiceTimestamp: timestamp,
+        };
+
+        logger.debug(`setUserJoinedVoiceTimestamp | updating user record with ID ${userId}`);
+        return this.loungeUserService.putUser(updatedUser)
+          .then(() => {
+            logger.debug(`setUserJoinedVoiceTimestamp | Successfully set user ${userId} joined voice timestamp to ${timestamp}`);
+            return true;
+          })
+          .catch((error) => {
+            logger.error(`setUserJoinedVoiceTimestamp | Error setting user ${userId} joined voice timestamp: ${error}`);
+            return false;
+          });
+      })
+      .catch((error) => {
+        logger.error(`rewardActivityScoreForVoice | Error retrieving user record for user ${userId}: ${error}`);
         return false;
       });
   }

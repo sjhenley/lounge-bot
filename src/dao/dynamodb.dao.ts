@@ -42,6 +42,8 @@ export default class DynamoDbDao extends BaseDao {
         [DATABASE.COLUMNS.USER_ID]: { S: user.userId },
         [DATABASE.COLUMNS.ROLE]: { S: user.role },
         [DATABASE.COLUMNS.BALANCE]: { N: user.balance.toString() },
+        [DATABASE.COLUMNS.ACTIVITY_SCORE]: { N: user.activityScore.toString() },
+        [DATABASE.COLUMNS.JOINED_VOICE_TIMESTAMP]: { N: user.joinedVoiceTimestamp.toString() },
       }
     };
 
@@ -50,7 +52,7 @@ export default class DynamoDbDao extends BaseDao {
     logger.debug(`Sending putUser request with options: ${JSON.stringify(commandInput)}`);
     return this.dbClient.send(command)
       .then((data) => {
-        logger.debug(`putUser request returned successfully: ${data}`);
+        logger.debug(`putUser request returned successfully: ${JSON.stringify(data)}`);
         return true;
       })
       .catch((error) => {
@@ -241,8 +243,8 @@ export default class DynamoDbDao extends BaseDao {
       }
     }
 
-    // validate and transform balance parameter
-    logger.debug('Validating balance parameter...');
+    // validate and transform activity score parameter
+    logger.debug('Validating activity score parameter...');
     const activityScoreColumn = userResult[DATABASE.COLUMNS.ACTIVITY_SCORE];
     let activityScore = 0;
     if (activityScoreColumn && activityScoreColumn.N) {
@@ -252,12 +254,24 @@ export default class DynamoDbDao extends BaseDao {
       }
     }
 
+    // validate and transform joinedVoiceTimestamp parameter
+    logger.debug('Validating joinedVoiceTimestamp parameter...');
+    const joinedVoiceTimestampColumn = userResult[DATABASE.COLUMNS.JOINED_VOICE_TIMESTAMP];
+    let joinedVoiceTimestamp = -1;
+    if (joinedVoiceTimestampColumn && joinedVoiceTimestampColumn.N) {
+      joinedVoiceTimestamp = parseInt(joinedVoiceTimestampColumn.N, 10);
+      if (Number.isNaN(activityScore)) {
+        joinedVoiceTimestamp = -1;
+      }
+    }
+
     // build and return LoungeUser object
     const user: LoungeUser = {
       userId,
       role,
       balance,
       activityScore,
+      joinedVoiceTimestamp,
     };
 
     logger.debug(`LoungeUser object built successfully: ${JSON.stringify(user)}`);
