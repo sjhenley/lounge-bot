@@ -12,7 +12,14 @@ dotenv.config();
 logger.info(`Starting app in mode ${process.env.NODE_ENV}`);
 
 // Create a new client instance
-const client = new BotClient({ intents: [GatewayIntentBits.Guilds] });
+const client = new BotClient(
+  {
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildVoiceStates
+    ]
+  }
+);
 
 // Register commands to the client
 logger.debug('Registering commands...');
