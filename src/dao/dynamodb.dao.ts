@@ -8,7 +8,9 @@ import {
   QueryCommand,
   QueryCommandInput,
   ScanCommand,
-  ScanCommandInput
+  ScanCommandInput,
+  UpdateItemCommand,
+  UpdateItemCommandInput
 } from '@aws-sdk/client-dynamodb';
 import common from '../config/common';
 import DATABASE from '../const/table.constants';
@@ -169,6 +171,38 @@ export default class DynamoDbDao extends BaseDao {
       });
   }
 
+  // TODO: move to activity dao?
+  public async updateUserActivityScore(userId: string, activityScore: number): Promise<boolean> {
+    logger.debug('Building updateUserActivityScore command input...');
+
+    const commandInput: UpdateItemCommandInput = {
+      TableName: config.dynamoDb.tableName,
+      Key: {
+        [DATABASE.COLUMNS.USER_ID]: { S: userId }
+      },
+      UpdateExpression: 'set #activityScore = :a',
+      ExpressionAttributeNames: {
+        '#activityScore': DATABASE.COLUMNS.ACTIVITY_SCORE,
+      },
+      ExpressionAttributeValues: {
+        ':a': { N: activityScore.toString() },
+      }
+    };
+
+    const command = new UpdateItemCommand(commandInput);
+
+    logger.debug(`Sending updateUserActivityScore request with options: ${JSON.stringify(commandInput)}`);
+    return this.dbClient.send(command)
+      .then((data) => {
+        logger.debug(`updateUserActivityScore request returned successfully: ${JSON.stringify(data)}`);
+        return true;
+      })
+      .catch((error) => {
+        logger.error(`updateUserActivityScore request error: ${error}`);
+        return false;
+      });
+  }
+
   /**
    * Helper method to validate record data and transform into a LoungeUser object
    * @param userResult Record data from the database
@@ -207,11 +241,23 @@ export default class DynamoDbDao extends BaseDao {
       }
     }
 
+    // validate and transform balance parameter
+    logger.debug('Validating balance parameter...');
+    const activityScoreColumn = userResult[DATABASE.COLUMNS.ACTIVITY_SCORE];
+    let activityScore = 0;
+    if (activityScoreColumn && activityScoreColumn.N) {
+      activityScore = parseInt(activityScoreColumn.N, 10);
+      if (Number.isNaN(activityScore)) {
+        throw new Error('Invalid activity score');
+      }
+    }
+
     // build and return LoungeUser object
     const user: LoungeUser = {
       userId,
       role,
       balance,
+      activityScore,
     };
 
     logger.debug(`LoungeUser object built successfully: ${JSON.stringify(user)}`);

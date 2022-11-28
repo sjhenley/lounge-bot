@@ -45,7 +45,7 @@ export default class ActivityService {
       }).catch((error) => {
         if (error.message === 'User not found') {
           // If user does not exist in database, create a new user with the specified balance
-          logger.debug(`setUserActivityScore | User does not exist in database. Creating new user with balance ${activityScore}`);
+          logger.debug(`setUserActivityScore | User does not exist in database. Creating new user with score ${activityScore}`);
           const newUser: LoungeUser = {
             userId,
             role: LoungeRole.USER,
@@ -57,6 +57,42 @@ export default class ActivityService {
           return this.dao.putUser(newUser);
         }
         logger.error(`setUserActivityScore | getUser request error: ${error}`);
+        throw new Error(error);
+      });
+  }
+
+  /**
+   * Adds activity score to user
+   * @param userId ID of user to update
+   * @param activityScore activity score to add
+   * @returns result of DAO operation
+   */
+  public async addUserActivityScore(userId: string, addedScore: number): Promise<boolean> {
+    logger.debug(`addUserActivityScore | Retrieving user with ID: ${userId}`);
+    return this.dao.getUser(userId)
+      .then((user) => {
+        const updatedUser: LoungeUser = {
+          ...user,
+          activityScore: user.activityScore + addedScore,
+        };
+
+        logger.debug(`addUserActivityScore | Saving updated user to dao: ${JSON.stringify(user)}`);
+        return this.dao.putUser(updatedUser);
+      }).catch((error) => {
+        if (error.message === 'User not found') {
+          // If user does not exist in database, create a new user with the specified balance
+          logger.debug(`addUserActivityScore | User does not exist in database. Creating new user with score ${addedScore}`);
+          const newUser: LoungeUser = {
+            userId,
+            role: LoungeRole.USER,
+            balance: 0,
+            activityScore: 0,
+          };
+
+          logger.debug(`addUserActivityScore | Saving new user to dao: ${JSON.stringify(newUser)}`);
+          return this.dao.putUser(newUser);
+        }
+        logger.error(`addUserActivityScore | getUser request error: ${error}`);
         throw new Error(error);
       });
   }
