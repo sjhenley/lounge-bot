@@ -4,6 +4,7 @@ interface LoungeUser {
   userId: string;
   role: LoungeRole;
   balance: number;
+  activityScore: number;
 }
 
 export default LoungeUser;
