@@ -1,6 +1,7 @@
 import {
   CommandInteraction,
-  User
+  User,
+  VoiceState
 } from 'discord.js';
 import DynamoDbDao from '../dao/dynamodb.dao';
 import logger from '../logger/logger-init';
@@ -82,5 +83,59 @@ export default class ActivityController {
       });
   }
 
-  // public async rewardActivityScoreForVoice(userId: string): Promise<void> {}
+  /**
+   * Handles adding activity score to a user for joining a voice channel
+   * @param voiceState state of the voice event
+   */
+  public async rewardActivityScoreForVoice(voiceState: VoiceState): Promise<boolean> {
+    logger.debug('rewardActivityScoreForVoice | Attempting to reward activity score for joining voice channel');
+
+    // get member associated with this voice state
+    const { member } = voiceState;
+
+    if (!member) {
+      logger.error('rewardActivityScoreForVoice | Unable to determine member associated with voice state');
+      return false;
+    }
+
+    // TODO: joinedTimestamp is the time the member joind the Discord server, NOT the voice channel
+    // Need to retreive the time the member joined the voice channel via database
+    const { id, joinedTimestamp } = member;
+    logger.debug(`rewardActivityScoreForVoice | Member ${id} joined voice channel at ${joinedTimestamp}`);
+
+    if (!joinedTimestamp) {
+      logger.error(`rewardActivityScoreForVoice | Unable to determine when member ${id} joined voice channel`);
+      return false;
+    }
+
+    const leftTimestamp = Date.now();
+    const timeInVoice = leftTimestamp - joinedTimestamp;
+
+    // calculate minues in voice channel
+    const minutesInVoice = Math.floor(timeInVoice / 1000 / 60);
+    const activityScorePerMinute = config.activityScore.reward.voice;
+
+    logger.debug(`rewardActivityScoreForVoice | Determined member ${id} was in voice channel for ${minutesInVoice} minute(s)`);
+
+    // calculate activity score to reward
+    const activityScore = minutesInVoice * activityScorePerMinute;
+    logger.debug(`rewardActivityScoreForVoice | Eligible activity score for member ${id} is ${activityScore}`);
+
+    if (activityScore <= 0) {
+      logger.debug(`rewardActivityScoreForVoice | No activity score to reward to user ${id}`);
+      return false;
+    }
+
+    // reward activity score to user
+    logger.debug(`rewardActivityScoreForVoice | Atteping to add score ${activityScore} to user ${id}`);
+    return this.activityService.addUserActivityScore(id, activityScore)
+      .then(() => {
+        logger.debug(`rewardActivityScoreForVoice | Successfully added score ${activityScore} to user ${id}`);
+        return true;
+      })
+      .catch((error) => {
+        logger.error(`rewardActivityScoreForVoice | Error adding activity score to user ${id}: ${error}`);
+        return false;
+      });
+  }
 }

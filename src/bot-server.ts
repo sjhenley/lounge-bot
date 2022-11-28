@@ -32,13 +32,17 @@ logger.info('All commands registered');
 // Start the Discord Service
 DiscordService.getInstance(client);
 
+// Registering events to the client
+logger.debug('Registering events...');
 botEvents.forEach((event: BaseEvent) => {
+  logger.debug(`Registering event: ${event.name}`);
   if (event.once) {
     client.once(event.name, (...args) => event.execute(...args));
   } else {
     client.on(event.name, (...args) => event.execute(...args));
   }
 });
+logger.info('All events registered');
 
 // Log in to Discord with the client token
 const token = process.env.DISCORD_BOT_TOKEN;
