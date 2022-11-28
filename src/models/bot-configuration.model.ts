@@ -6,6 +6,12 @@ interface BotConfiguration {
     topBalanceRole: {
       roleId: string
     }
+  },
+  activityScore: {
+    reward: {
+      message: number,
+      voice: number
+    }
   }
 }
 
