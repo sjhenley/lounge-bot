@@ -3,6 +3,8 @@ const DATABASE = {
     USER_ID: 'userId',
     BALANCE: 'balance',
     ROLE: 'role',
+    ACTIVITY_SCORE: 'activityScore',
+    JOINED_VOICE_TIMESTAMP: 'joinedVoiceTimestamp',
   }
 };
 

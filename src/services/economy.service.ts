@@ -59,7 +59,9 @@ export default class EconomyService {
           const newUser: LoungeUser = {
             userId,
             role: LoungeRole.USER,
-            balance: amount
+            balance: amount,
+            joinedVoiceTimestamp: -1,
+            activityScore: 0
           };
 
           logger.debug(`addFundsToUser | Saving new user to dao: ${JSON.stringify(newUser)}`);
