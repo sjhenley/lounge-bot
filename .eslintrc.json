@@ -87,6 +87,7 @@
     "comma-dangle": "off",
     "import/no-dynamic-require": "off",
     "global-require": "off",
-    "no-shadow": "off"
+    "no-shadow": "off",
+    "no-restricted-syntax": "off"
   }
 }

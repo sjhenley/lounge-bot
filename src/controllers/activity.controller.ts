@@ -76,7 +76,7 @@ export default class ActivityController {
    */
   public async rewardActivityScoreForMessage(userId: string): Promise<void> {
     logger.debug(`rewardActivityScoreForMessage | Rewarding activity score to ${userId} for sending a message`);
-    const activityValue = config.activityScore.reward.message;
+    const activityValue = config.activityScore.activityScoreReward.message;
 
     logger.debug(`rewardActivityScoreForMessage | Atteping to add score ${activityValue} to user ${userId}`);
     return this.activityService.addUserActivityScore(userId, activityValue)
@@ -125,7 +125,7 @@ export default class ActivityController {
 
         // calculate minues in voice channel
         const minutesInVoice = Math.floor(timeInVoice / 1000 / 60);
-        const activityScorePerMinute = config.activityScore.reward.voice;
+        const activityScorePerMinute = config.activityScore.activityScoreReward.voice;
 
         logger.debug(`rewardActivityScoreForVoice | Determined member ${id} was in voice channel for ${minutesInVoice} minute(s)`);
 
@@ -182,6 +182,57 @@ export default class ActivityController {
       })
       .catch((error) => {
         logger.error(`rewardActivityScoreForVoice | Error retrieving user record for user ${userId}: ${error}`);
+        return false;
+      });
+  }
+
+  /**
+   * Check the activity score for all members. If any score is above the threshold, remove that much activity score and reward a balance
+   */
+  public async auditUserActivityScore(): Promise<boolean> {
+    logger.debug('auditUserActivityScore | Attempting to audit user activity score');
+
+    const activityScoreThreshold = config.activityScore.balanceReward.scoreThreshold;
+    const activityScoreReward = config.activityScore.balanceReward.rewardAmount;
+
+    logger.debug(`auditUserActivityScore | required activity score for reward is: ${activityScoreThreshold}`);
+    logger.debug(`auditUserActivityScore | balance reward for activity is: ${activityScoreReward}`);
+
+    logger.debug('auditUserActivityScore | Retrieving all users');
+    return this.loungeUserService.getAllUsers()
+      .then((users) => {
+        logger.debug('auditUserActivityScore | Successfully retrieved all users');
+        const usersToUpdate: LoungeUser[] = [];
+        for (const user of users) {
+          logger.debug(`auditUserActivityScore | Auditing user ${user.userId}`);
+          let updatedActivityScore = user.activityScore;
+          let updatedBalance = user.balance;
+
+          if (user.activityScore >= activityScoreThreshold) {
+            logger.debug(`auditUserActivityScore | User ${user.userId} has activity score above threshold`);
+            while (updatedActivityScore >= activityScoreThreshold) {
+              updatedActivityScore -= activityScoreThreshold;
+              updatedBalance += activityScoreReward;
+            }
+
+            const updatedUser: LoungeUser = {
+              ...user,
+              activityScore: updatedActivityScore,
+              balance: updatedBalance,
+            };
+
+            logger.debug(`auditUserActivityScore | Saving updated user: ${JSON.stringify(updatedUser)}`);
+            usersToUpdate.push(updatedUser);
+          } else {
+            logger.debug(`auditUserActivityScore | User ${user.userId} has activity score below threshold`);
+          }
+        }
+        logger.debug('auditUserActivityScore | Successfully audited all users');
+        logger.debug('auditUserActivityScore | Sending updated users to dao');
+        return this.loungeUserService.putUsers(usersToUpdate);
+      })
+      .catch((error) => {
+        logger.error(`auditUserActivityScore | Error retrieving all users: ${JSON.stringify(error)}`);
         return false;
       });
   }

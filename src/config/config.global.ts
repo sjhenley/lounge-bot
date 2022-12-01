@@ -1,4 +1,6 @@
-const config = {
+import BotConfiguration from '../models/bot-configuration.model';
+
+const config: BotConfiguration = {
   dynamoDb: {
     tableName: 'REPLACE_WITH_TABLE_NAME'
   },
@@ -8,12 +10,15 @@ const config = {
     }
   },
   activityScore: {
-    reward: {
-      // Score to reward for each sent message
+    activityScoreReward: {
       message: 1,
-
-      // Score to reward for each minute of voice activity
       voice: 1,
+    },
+    balanceReward: {
+      // 1 day = 1000 * 60 * 60 * 24 = 86400000
+      scoreAuditInterval: 86400000,
+      scoreThreshold: 100,
+      rewardAmount: 10,
     }
   }
 };

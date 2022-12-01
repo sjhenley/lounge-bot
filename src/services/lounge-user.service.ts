@@ -50,4 +50,28 @@ export default class LoungeUserService {
     logger.debug(`putUser | Saving user to dao: ${JSON.stringify(user)}`);
     return this.dao.putUser(user);
   }
+
+  public async putUsers(users: LoungeUser[]): Promise<boolean> {
+    const putUserPromises = users.map((user) => this.putUser(user));
+    return Promise.allSettled(putUserPromises)
+      .then((results) => {
+        results.forEach((promiseResult) => {
+          if (promiseResult.status === 'rejected') {
+            logger.error(`putUsers | Error saving user: ${promiseResult.reason}`);
+          } else if (promiseResult.status === 'fulfilled') {
+            logger.debug(`putUsers | Successfully saved user: ${promiseResult.value}`);
+          }
+        });
+        return true;
+      });
+  }
+
+  /**
+   * Returns all users in the database
+   * @returns array of user records
+   */
+  public async getAllUsers(): Promise<LoungeUser[]> {
+    logger.debug('getAllUsers | Retrieving all users');
+    return this.dao.getAllUsers();
+  }
 }
