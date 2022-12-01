@@ -1,5 +1,4 @@
-# 2.0.0 (2022-12-02)
-## The Big Overhaul
+# 2.0.0 (2022-12-02) - The Big Overhaul
 The [first iteration](https://github.com/sjhenley/economy-bot) of my Discord bot was a side project for me to to provide a fun experience for myself and Discord friends while exapanding my coding proficiency. After almost a year of programming with node in a professional environment, I felt it was time to scrap the whole thing and use my new experience to design a more organized, extendible, and maintainable application. It's far from perfect, but I hope to continue using this application to explore more design and programming techniques and further push my coding skills.
 
 ## Economy
