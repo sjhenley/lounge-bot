@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
 import { Command } from '../models/command.model';
 import packageJson from '../../../../package.json';
+import { COMMAND } from '../const/info-command.constants';
 
 const infoCommand: Command = {
   priviledgedCommand: false,
@@ -9,8 +10,14 @@ const infoCommand: Command = {
     .setDescription('Gives some information about the bot'),
   execute: async (interaction: CommandInteraction) => {
     const { version } = packageJson;
-    const replyMessage = `LoungeBot version ${version}`;
-    await interaction.editReply(replyMessage);
+    const replyBody = [
+      `LoungeBot v${version}`,
+      `View the latest changes: <${COMMAND.INFO.RESPONSE.CHANGELOG_URL}>`,
+      `Report an issue or request a feature: <${COMMAND.INFO.RESPONSE.ISSUES_URL}>`
+    ];
+
+    const message = replyBody.join('\n');
+    await interaction.editReply(message);
   }
 };
 
