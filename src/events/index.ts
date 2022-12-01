@@ -1,6 +1,7 @@
 import ReadyEvent from './ready.event';
 import InteractionCreateEvent from './interaction-create.event';
 import voiceStateUpdateEvent from './voice-state-update.event';
+import messageCreateEvent from './message-create.event';
 
 export default [
   // Client-Level events
@@ -10,5 +11,8 @@ export default [
   InteractionCreateEvent,
 
   // Voice State events
-  voiceStateUpdateEvent
+  voiceStateUpdateEvent,
+
+  // Message events
+  messageCreateEvent
 ];
