@@ -30,4 +30,12 @@ export default abstract class BaseDao {
    * @param userId primary key of record to delete
    */
   public abstract deleteUser(userId: string): Promise<boolean>;
+
+  // TODO: move to activity dao?
+  /**
+   * Update the activityScore value for a user record
+   * @param userId ID of user to be updated
+   * @param activityScore activityScore value to set
+   */
+  public abstract updateUserActivityScore(userId: string, activityScore: number): Promise<boolean>;
 }

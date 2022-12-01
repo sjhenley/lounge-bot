@@ -8,7 +8,9 @@ import {
   QueryCommand,
   QueryCommandInput,
   ScanCommand,
-  ScanCommandInput
+  ScanCommandInput,
+  UpdateItemCommand,
+  UpdateItemCommandInput
 } from '@aws-sdk/client-dynamodb';
 import common from '../config/common';
 import DATABASE from '../const/table.constants';
@@ -40,6 +42,8 @@ export default class DynamoDbDao extends BaseDao {
         [DATABASE.COLUMNS.USER_ID]: { S: user.userId },
         [DATABASE.COLUMNS.ROLE]: { S: user.role },
         [DATABASE.COLUMNS.BALANCE]: { N: user.balance.toString() },
+        [DATABASE.COLUMNS.ACTIVITY_SCORE]: { N: user.activityScore.toString() },
+        [DATABASE.COLUMNS.JOINED_VOICE_TIMESTAMP]: { N: user.joinedVoiceTimestamp.toString() },
       }
     };
 
@@ -48,7 +52,7 @@ export default class DynamoDbDao extends BaseDao {
     logger.debug(`Sending putUser request with options: ${JSON.stringify(commandInput)}`);
     return this.dbClient.send(command)
       .then((data) => {
-        logger.debug(`putUser request returned successfully: ${data}`);
+        logger.debug(`putUser request returned successfully: ${JSON.stringify(data)}`);
         return true;
       })
       .catch((error) => {
@@ -84,11 +88,7 @@ export default class DynamoDbDao extends BaseDao {
         }
 
         logger.warn('getUser request returned no data');
-        throw new Error();
-      })
-      .catch((error) => {
-        logger.error(`getUser request error: ${error}`);
-        throw new Error(error);
+        throw new Error('User not found');
       });
   }
 
@@ -173,6 +173,38 @@ export default class DynamoDbDao extends BaseDao {
       });
   }
 
+  // TODO: move to activity dao?
+  public async updateUserActivityScore(userId: string, activityScore: number): Promise<boolean> {
+    logger.debug('Building updateUserActivityScore command input...');
+
+    const commandInput: UpdateItemCommandInput = {
+      TableName: config.dynamoDb.tableName,
+      Key: {
+        [DATABASE.COLUMNS.USER_ID]: { S: userId }
+      },
+      UpdateExpression: 'set #activityScore = :a',
+      ExpressionAttributeNames: {
+        '#activityScore': DATABASE.COLUMNS.ACTIVITY_SCORE,
+      },
+      ExpressionAttributeValues: {
+        ':a': { N: activityScore.toString() },
+      }
+    };
+
+    const command = new UpdateItemCommand(commandInput);
+
+    logger.debug(`Sending updateUserActivityScore request with options: ${JSON.stringify(commandInput)}`);
+    return this.dbClient.send(command)
+      .then((data) => {
+        logger.debug(`updateUserActivityScore request returned successfully: ${JSON.stringify(data)}`);
+        return true;
+      })
+      .catch((error) => {
+        logger.error(`updateUserActivityScore request error: ${error}`);
+        return false;
+      });
+  }
+
   /**
    * Helper method to validate record data and transform into a LoungeUser object
    * @param userResult Record data from the database
@@ -211,11 +243,35 @@ export default class DynamoDbDao extends BaseDao {
       }
     }
 
+    // validate and transform activity score parameter
+    logger.debug('Validating activity score parameter...');
+    const activityScoreColumn = userResult[DATABASE.COLUMNS.ACTIVITY_SCORE];
+    let activityScore = 0;
+    if (activityScoreColumn && activityScoreColumn.N) {
+      activityScore = parseInt(activityScoreColumn.N, 10);
+      if (Number.isNaN(activityScore)) {
+        throw new Error('Invalid activity score');
+      }
+    }
+
+    // validate and transform joinedVoiceTimestamp parameter
+    logger.debug('Validating joinedVoiceTimestamp parameter...');
+    const joinedVoiceTimestampColumn = userResult[DATABASE.COLUMNS.JOINED_VOICE_TIMESTAMP];
+    let joinedVoiceTimestamp = -1;
+    if (joinedVoiceTimestampColumn && joinedVoiceTimestampColumn.N) {
+      joinedVoiceTimestamp = parseInt(joinedVoiceTimestampColumn.N, 10);
+      if (Number.isNaN(activityScore)) {
+        joinedVoiceTimestamp = -1;
+      }
+    }
+
     // build and return LoungeUser object
     const user: LoungeUser = {
       userId,
       role,
       balance,
+      activityScore,
+      joinedVoiceTimestamp,
     };
 
     logger.debug(`LoungeUser object built successfully: ${JSON.stringify(user)}`);
