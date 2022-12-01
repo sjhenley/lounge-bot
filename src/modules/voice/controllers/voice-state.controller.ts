@@ -20,6 +20,7 @@ export default class VoiceStateController {
     if (oldState.member) {
       return ActivityController.getInstance().setUserJoinedVoiceTimestamp(oldState.member.id, timeJoined);
     }
+    return false;
   }
 
   /**
