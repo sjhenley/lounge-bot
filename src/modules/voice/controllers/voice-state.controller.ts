@@ -17,7 +17,9 @@ export default class VoiceStateController {
   public static async handleMemberJoinedVoiceChannel(oldState: VoiceState, newState: VoiceState): Promise<boolean> {
     logger.debug('handleMemberJoinedVoiceChannel | Handling member joined voice channel event...');
     const timeJoined = Date.now();
-    return ActivityController.getInstance().setUserJoinedVoiceTimestamp(oldState.member.id, timeJoined);
+    if (oldState.member) {
+      return ActivityController.getInstance().setUserJoinedVoiceTimestamp(oldState.member.id, timeJoined);
+    }
   }
 
   /**
