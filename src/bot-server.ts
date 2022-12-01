@@ -1,13 +1,13 @@
 import * as dotenv from 'dotenv';
 import { GatewayIntentBits } from 'discord.js';
-import BotClient from './models/bot-client.model';
+import BotClient from './modules/misc/models/bot-client.model';
 import botCommands from './commands';
 import botEvents from './events';
-import { BaseEvent } from './models/base-event.model';
-import logger from './logger/logger-init';
-import DiscordService from './services/discord.service';
+import { BaseEvent } from './modules/misc/models/base-event.model';
+import logger from './modules/logger/logger-init';
+import DiscordService from './modules/misc/services/discord.service';
 import common from './config/common';
-import ActivityController from './controllers/activity.controller';
+import ActivityController from './modules/activity/controllers/activity.controller';
 
 dotenv.config();
 const config = common.config();

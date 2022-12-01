@@ -1,4 +1,4 @@
-import BotConfiguration from '../models/bot-configuration.model';
+import BotConfiguration from './bot-configuration.model';
 
 export default {
   config(forceReload: boolean = false): BotConfiguration {
